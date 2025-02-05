@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import asyncio
-from telethon import TelegramClient, functions, types
+from telethon import TelegramClient, functions, types, events
+from telethon.tl.types import User
 from telethon.sessions import StringSession
 from fastapi import FastAPI, HTTPException, Depends, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import nest_asyncio
 import uvicorn
 import os
@@ -109,6 +110,81 @@ async def get_current_user(request: Request):
     except Exception as e:
         logger.error(f"Authorization Error: {e}")
         return None
+
+# Функция для получения ответа от gpt на сообщение пользователя
+async def get_openai_response(message_text: str) -> str:
+    try:
+        response = await openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": message_text},
+            ]
+        )
+        openai_response = response.choices[0].message.content.strip()
+        if len(openai_response) < 5:
+            raise ValueError(f"Слишком короткий ответ: '{openai_response}'")
+        return openai_response
+    except Exception as e:
+        logger.error(f"Ошибка при ответе пользователю: {e}")
+        return "Извините, я не могу сейчас ответить на этот вопрос. Попробуйте пожалуйста позже."
+
+# Функция обработчик сообщений от обычных пользователей
+async def new_message_handler(event: events.NewMessage.Event):
+    if event.is_private:
+        sender: User = await event.get_sender()
+        sender_name = sender.username
+        message = event.message.message
+        logger.info(f"Получено сообщение от пользователя {sender_name}: {message}")
+        openai_response = await get_openai_response(message)
+        event.reply(openai_response)
+        logger.info(f"Пользователь {sender_name} получил ответ: {openai_response}")
+
+# Функция для получения текста сообщений для шаблона подписки на обработчик сообщений и изменения значения сессии
+def get_message_button_message_handler(request: Request, post: Optional[bool] = False) -> Tuple[str, str]:
+    msg_sub = "Вы подписаны на обработчик сообщений, хотите отписаться?"
+    msg_not_sub = "Вы еще не подписаны на обработчик сообщений, хотите подписаться?"
+    but_sub = "Описаться"
+    but_not_sub = "Подписаться"
+
+    if request.session.get("subscribe_message_handler"):
+        if post:
+            request.session["subscribe_message_handler"] = False
+            return msg_not_sub, but_not_sub
+        return msg_sub, but_sub
+    else:
+        if post:
+            request.session["subscribe_message_handler"] = True
+            return msg_sub, but_sub
+        return msg_not_sub, but_not_sub
+
+# TODO Добавить куда-нибудь на сайт
+# Подписка на обработчик сообщений
+@app.get("/subscribe_message_handler", response_class=HTMLResponse)
+async def subscribe_message_handler(request: Request):
+    user_client = await get_current_user(request)
+    message, button = get_message_button_message_handler(request)
+    return templates.TemplateResponse(
+        "message_handler.html",
+        {"request": request, "message": message, "button": button},
+    )
+
+# Обработка подписки на обработчик сообщений
+@app.post("/subscribe_message_handler", response_class=HTMLResponse)
+async def submit_subscribe_message_handler(request: Request):
+    user_client = await get_current_user(request)
+
+    # TODO Стоит реализовать через базу данных, чтобы хранить информацию о подписке на обработчик
+    message, button = get_message_button_message_handler(request, post=True)
+    if request.session.get("subscribe_message_handler"):
+        user_client.add_event_handler(new_message_handler, events.NewMessage)
+    else:
+        user_client.remove_event_handler(new_message_handler, events.NewMessage)
+
+    return templates.TemplateResponse(
+        "message_handler.html",
+        {"request": request, "message": message, "button": button},
+    )
 
 # Главная страница
 @app.get("/", response_class=HTMLResponse)
@@ -347,7 +423,6 @@ async def last_messages(request: Request, channel_link: str):
             "message": f"Ошибка: {e}"
         })
 
-# Страница формы суммаризации
 # Страница формы суммаризации
 @app.get("/summarize", response_class=HTMLResponse)
 async def summarize_form(request: Request):

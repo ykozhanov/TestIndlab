@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if not request.session.session_str %}
+    <p><a href="/authenticate">Войдите через Telegram</a></p>
+{% else %}
+    <h1>{{ message }}</h1>
+    <form action="#" method="post">
+        <button type="submit">{{ button }}</button>
+    </form>
+{% endif %}
+{% endblock %}
