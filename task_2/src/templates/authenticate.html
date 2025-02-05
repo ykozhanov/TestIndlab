@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Авторизация через Telegram</h2>
+{% if message %}
+    <p style="color:red;">{{ message }}</p>
+{% endif %}
+<form action="/authenticate" method="post">
+    <label for="phone_number">Номер телефона:</label>
+    <input type="text" id="phone_number" name="phone_number" placeholder="+1234567890" required>
+    <button type="submit">Отправить код</button>
+</form>
+{% endblock %}

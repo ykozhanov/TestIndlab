@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Telegram Summary</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Опционально: ваш CSS -->
+</head>
+<body>
+    <nav>
+        <a href="/">Главная</a>
+        {% if request.session.session_str %}
+            <a href="/dashboard">Панель</a>
+            <a href="/logout">Выход</a>
+        {% else %}
+            <a href="/authenticate">Авторизация</a>
+        {% endif %}
+    </nav>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

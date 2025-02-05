@@ -1,0 +1,16 @@
+[project]
+name = "testindlab"
+version = "0.1.0"
+description = "Add your description here"
+readme = "task_2/README.md"
+requires-python = ">=3.13.1"
+dependencies = [
+    "jinja2>=3.1.5",
+    "nest-asyncio>=1.6.0",
+    "openai>=1.61.0",
+    "pydantic>=2.10.6",
+    "python-multipart>=0.0.20",
+    "sqlalchemy>=2.0.37",
+    "telethon>=1.38.1",
+    "uvicorn>=0.34.0",
+]

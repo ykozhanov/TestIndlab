@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Последние сообщения из канала @{{ channel }}</h2>
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>
+                <strong>{{ message.date }}:</strong> {{ message.text }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Нет сообщений для отображения.</p>
+{% endif %}
+<p><a href="/dashboard">Назад к каналам</a></p>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Панель Управления</title>
+</head>
+<body>
+    <h1>Все каналы</h1>
+    <ul>
+        {% for channel in channels %}
+            <li><a href="/last-messages/{{ channel }}">{{ channel }}</a></li>
+        {% endfor %}
+    </ul>
+
+    <h1>Фильтры (Папки)</h1>
+    {% for group in groups %}
+        <h2>{{ group.filter_name }}</h2>
+        <ul>
+            {% for channel in group.channels %}
+                <li><a href="/last-messages/{{ channel }}">{{ channel }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+    
+    <br>
+    <a href="/summarize">Суммаризировать Сообщения</a>
+    <br><br>
+    <a href="/logout">Выйти</a>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Суммаризация Сообщений</title>
+</head>
+<body>
+    <h1>Суммаризация Сообщений</h1>
+    <form action="/summarize" method="post">
+        <label for="filter_name">Выберите группу (папку):</label>
+        <select name="filter_name" id="filter_name" required>
+            {% for filter in filters %}
+                <option value="{{ filter }}">{{ filter }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+        
+        <label for="summary_type">Тип суммаризации:</label>
+        <select name="summary_type" id="summary_type" required>
+            <option value="last_10">Последние 10 сообщений</option>
+            <option value="period">За определённый период</option>
+        </select>
+        <br><br>
+        
+        <div id="period_fields" style="display: none;">
+            <label for="period_start">Начальная дата (YYYY-MM-DD):</label>
+            <input type="date" id="period_start" name="period_start">
+            <br><br>
+            <label for="period_end">Конечная дата (YYYY-MM-DD):</label>
+            <input type="date" id="period_end" name="period_end">
+            <br><br>
+        </div>
+        
+        <button type="submit">Суммаризировать</button>
+    </form>
+    
+    <script>
+        const summaryTypeSelect = document.getElementById('summary_type');
+        const periodFields = document.getElementById('period_fields');
+        
+        summaryTypeSelect.addEventListener('change', function() {
+            if (this.value === 'period') {
+                periodFields.style.display = 'block';
+            } else {
+                periodFields.style.display = 'none';
+            }
+        });
+    </script>
+    
+    {% if message %}
+        <p style="color:red;">{{ message }}</p>
+    {% endif %}
+</body>
+</html>
