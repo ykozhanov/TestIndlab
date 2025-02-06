@@ -162,7 +162,6 @@ def get_message_button_message_handler(request: Request, post: Optional[bool] = 
 # Подписка на обработчик сообщений
 @app.get("/subscribe_message_handler", response_class=HTMLResponse)
 async def subscribe_message_handler(request: Request):
-    user_client = await get_current_user(request)
     message, button = get_message_button_message_handler(request)
     return templates.TemplateResponse(
         "message_handler.html",
